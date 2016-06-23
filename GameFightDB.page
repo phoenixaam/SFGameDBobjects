@@ -1,9 +1,10 @@
 <apex:page controller="GameFightDBController">
     <apex:form>
-        <apex:actionFunction name="startGame" action="{!initGameUnits}" rerender="SystemUnit, UserUnit, Results"/>
+        <apex:actionFunction name="startGame" action="{!initGameUnits}"/>
 
         <apex:pageBlock title="Game parameters" id="game_parameters">
-            <apex:commandButton value="Get random system unit" onClick="" action="{!initGameUnits}"/>
+            <apex:commandButton value="Get random system unit" onClick="" action="{!initGameUnits}"
+                                reRender="SystemUnit, UserUnit, ChosenUnit, Results"/>
         </apex:pageBlock>
     </apex:form>
 
@@ -19,31 +20,52 @@
             </apex:pageBlock>
         </apex:form>
     </apex:outputPanel>
-    <apex:form>
-        <apex:outputPanel id="UserUnit">
-            <apex:actionFunction name="selectUserUnitFromDB" action="{!chooseUnit}" rerender="ChosenUnit"/>
 
-            <apex:actionFunction name="saveNewUserUnit" action="{!saveNewUnit}" rerender="ChosenUnit"/>
+    <apex:outputPanel id="UserUnit">
+        <apex:form>
+            <apex:actionFunction name="selectUserUnitFromList" action="{!chooseUnit}"
+                                 rerender="ChosenUnit, UserUnit, ErrorUnit, GameStart"/>
+
+            <apex:actionFunction name="saveNewUserUnit" action="{!saveNewUnit}"
+                                 rerender="ChosenUnit, UserUnit, ErrorUnit, GameStart"/>
+
+            <apex:actionFunction name="checkNewUserUnitFilling" action="{!checkNewUnit}"
+                                 rerender="ChosenUnit, ErrorUnit, GameStart, SaveButton"/>
 
             <apex:pageBlock title="User unit" id="user_units" rendered="{!isShowUserUnit}">
                 <apex:pageBlockSection columns="5" title="Please choose your unit or create your own unit">
                     <apex:selectList value="{!userChoice}" id="userUnitSelectList" styleclass="std" size="1"
-                                     onChange="selectUserUnitFromDB()" onSelect="selectUserUnitFromDB()">
+                                     onChange="selectUserUnitFromList()" onSelect="selectUserUnitFromList()">
                         <apex:selectOptions value="{!userUnitSelectList}"/>
                     </apex:selectList>
 
-                    <apex:inputField value="{!newUserUnit.Name}" label="Name:"/>
-                    <apex:inputField value="{!newUserUnit.HealthPoint__c}" label="Health Points:"/>
-                    <apex:inputField value="{!newUserUnit.DamageMin__c}" label="DamageMin:"/>
+                    <apex:inputField value="{!newUserUnit.Name}" label="Name:"
+                                     onkeyup="{checkNewUserUnitFilling()}"/>
+                    <apex:inputField value="{!newUserUnit.HealthPoint__c}" label="Health Points:"
+                                     onkeyup="{checkNewUserUnitFilling()}"/>
+                    <apex:inputField value="{!newUserUnit.DamageMin__c}" label="DamageMin:"
+                                     onkeyup="{checkNewUserUnitFilling()}"/>
                     <apex:inputField value="{!newUserUnit.DamageMax__c}" label="DamageMax:"
-                                     onkeyup="if(event.keyCode == 13){saveNewUserUnit()}"/>
-                    <apex:commandButton value="Save new unit" onClick="saveNewUserUnit()"/>
+                                     onkeyup="{checkNewUserUnitFilling()}"/>
+                    <apex:commandButton id="SaveButton" value="Save new unit" onClick="saveNewUserUnit()"
+                                        disabled="{!isNewUserSaveDisabled}" reRender="ErrorUnit"/>
                 </apex:pageBlockSection>
             </apex:pageBlock>
-        </apex:outputPanel>
-        <apex:outputPanel id="ChosenUnit">
-            <apex:pageBlock title="User's chosen unit" id="chosen_unit" rendered="{!isShowUserChosenUnit}">
+        </apex:form>
+    </apex:outputPanel>
 
+    <apex:outputPanel id="ErrorUnit">
+        <apex:form>
+            <apex:pageBlock title="Error!" id="error_unit" rendered="{!isShowMessage}">
+                <apex:outputText value="{!errorMessage}"/>
+            </apex:pageBlock>
+        </apex:form>
+    </apex:outputPanel>
+
+    <apex:outputPanel id="ChosenUnit">
+        <apex:form>
+            <apex:pageBlock title="User's chosen unit" id="chosen_unit" rendered="{!isShowUserChosenUnit}">
+                <!--<apex:outputText value="{!userChoice}" title="userChose: "/>-->
                 <apex:pageBlockSection columns="1" title="Your chosen unit is:"
                 >
                     <apex:outputField value="{!userUnit.Name}" label="Name:"/>
@@ -53,16 +75,17 @@
                 </apex:pageBlockSection>
 
             </apex:pageBlock>
-            <apex:pageBlock title="Game start" id="game_start" rendered="{!isShowUserChosenUnit}">
-                <apex:commandButton action="{!fightButton}" value="Fight" rerender="Results"/>
+            <apex:pageBlock title="Game start" id="GameStart" rendered="{!isShowGameStart}">
+                <apex:commandButton action="{!fightButton}" value="Auto Fight" rerender="UserUnit, Results, ChosenUnit"/>
+                <apex:commandButton action="{!fightButton}" value="Step by step Fight" rerender="UserUnit, Results, ChosenUnit"/>
             </apex:pageBlock>
 
+        </apex:form>
+    </apex:outputPanel>
 
-        </apex:outputPanel>
 
-
-        <apex:outputPanel id="Results">
-            <!--<apex:form>-->
+    <apex:outputPanel id="Results">
+        <apex:form>
             <apex:pageBlock title="Game result" id="game_results" rendered="{!isShowResult}">
                 <apex:dataList value="{!gamelog}" var="gamelog">
                     <apex:outputText value="{!gamelog}"/>
@@ -70,7 +93,7 @@
                 Winner:
                 <apex:outputText value="{!winner.Name}"/>
             </apex:pageBlock>
-            <!--</apex:form>-->
-        </apex:outputPanel>
-    </apex:form>
+        </apex:form>
+    </apex:outputPanel>
+
 </apex:page>
