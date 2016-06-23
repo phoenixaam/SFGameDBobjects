@@ -1,0 +1,76 @@
+<apex:page controller="GameFightDBController">
+    <apex:form>
+        <apex:actionFunction name="startGame" action="{!initGameUnits}" rerender="SystemUnit, UserUnit, Results"/>
+
+        <apex:pageBlock title="Game parameters" id="game_parameters">
+            <apex:commandButton value="Get random system unit" onClick="" action="{!initGameUnits}"/>
+        </apex:pageBlock>
+    </apex:form>
+
+    <apex:outputPanel id="SystemUnit">
+        <apex:form>
+            <apex:pageBlock title="System unit" id="system_units" rendered="{!isShowSystemUnit}">
+                <apex:pageBlockSection columns="4" title="You will fight with system unit:">
+                    <apex:outputField value="{!systemUnit.Name}" label="Name:"/>
+                    <apex:outputField value="{!systemUnit.HealthPoint__c}" label="Health Points:"/>
+                    <apex:outputField value="{!systemUnit.DamageMin__c}" label="DamageMin:"/>
+                    <apex:outputField value="{!systemUnit.DamageMax__c}" label="DamageMax:"/>
+                </apex:pageBlockSection>
+            </apex:pageBlock>
+        </apex:form>
+    </apex:outputPanel>
+    <apex:form>
+        <apex:outputPanel id="UserUnit">
+            <apex:actionFunction name="selectUserUnitFromDB" action="{!chooseUnit}" rerender="ChosenUnit"/>
+
+            <apex:actionFunction name="saveNewUserUnit" action="{!saveNewUnit}" rerender="ChosenUnit"/>
+
+            <apex:pageBlock title="User unit" id="user_units" rendered="{!isShowUserUnit}">
+                <apex:pageBlockSection columns="5" title="Please choose your unit or create your own unit">
+                    <apex:selectList value="{!userChoice}" id="userUnitSelectList" styleclass="std" size="1"
+                                     onChange="selectUserUnitFromDB()" onSelect="selectUserUnitFromDB()">
+                        <apex:selectOptions value="{!userUnitSelectList}"/>
+                    </apex:selectList>
+
+                    <apex:inputField value="{!newUserUnit.Name}" label="Name:"/>
+                    <apex:inputField value="{!newUserUnit.HealthPoint__c}" label="Health Points:"/>
+                    <apex:inputField value="{!newUserUnit.DamageMin__c}" label="DamageMin:"/>
+                    <apex:inputField value="{!newUserUnit.DamageMax__c}" label="DamageMax:"
+                                     onkeyup="if(event.keyCode == 13){saveNewUserUnit()}"/>
+                    <apex:commandButton value="Save new unit" onClick="saveNewUserUnit()"/>
+                </apex:pageBlockSection>
+            </apex:pageBlock>
+        </apex:outputPanel>
+        <apex:outputPanel id="ChosenUnit">
+            <apex:pageBlock title="User's chosen unit" id="chosen_unit" rendered="{!isShowUserChosenUnit}">
+
+                <apex:pageBlockSection columns="1" title="Your chosen unit is:"
+                >
+                    <apex:outputField value="{!userUnit.Name}" label="Name:"/>
+                    <apex:outputField value="{!userUnit.HealthPoint__c}" label="Health Points:"/>
+                    <apex:outputField value="{!userUnit.DamageMin__c}" label="DamageMin:"/>
+                    <apex:outputField value="{!userUnit.DamageMax__c}" label="DamageMax:"/>
+                </apex:pageBlockSection>
+
+            </apex:pageBlock>
+            <apex:pageBlock title="Game start" id="game_start" rendered="{!isShowUserChosenUnit}">
+                <apex:commandButton action="{!fightButton}" value="Fight" rerender="Results"/>
+            </apex:pageBlock>
+
+
+        </apex:outputPanel>
+
+
+        <apex:outputPanel id="Results">
+            <!--<apex:form>-->
+            <apex:pageBlock title="Game result" id="game_results" rendered="{!isShowResult}">
+                <apex:dataList value="{!gamelog}" var="gamelog">
+                    <apex:outputText value="{!gamelog}"/>
+                </apex:dataList>
+                Winner:
+                <apex:outputText value="{!winner.Name}"/>
+            </apex:pageBlock>
+            <!--</apex:form>-->
+        </apex:outputPanel>
+    </apex:form>
+</apex:page>
