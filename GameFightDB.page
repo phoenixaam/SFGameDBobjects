@@ -26,8 +26,7 @@
             <apex:actionFunction name="selectUserUnitFromList" action="{!chooseUnit}"
                                  rerender="ChosenUnit, UserUnit, ErrorUnit, GameStart"/>
 
-            <apex:actionFunction name="saveNewUserUnit" action="{!saveNewUnit}"
-                                 rerender="ChosenUnit, UserUnit, ErrorUnit, GameStart"/>
+            <apex:actionFunction name="saveNewUserUnit" action="{!saveNewUnit}"/>
 
             <apex:actionFunction name="checkNewUserUnitFilling" action="{!checkNewUnit}"
                                  rerender="ChosenUnit, ErrorUnit, GameStart, SaveButton"/>
@@ -48,7 +47,8 @@
                     <apex:inputField value="{!newUserUnit.DamageMax__c}" label="DamageMax:"
                                      onkeyup="{checkNewUserUnitFilling()}"/>
                     <apex:commandButton id="SaveButton" value="Save new unit" onClick="saveNewUserUnit()"
-                                        disabled="{!isNewUserSaveDisabled}" reRender="ErrorUnit"/>
+                                        disabled="{!isNewUserSaveDisabled}"
+                                        rerender="ChosenUnit, UserUnit, ErrorUnit, GameStart"/>
                 </apex:pageBlockSection>
             </apex:pageBlock>
         </apex:form>

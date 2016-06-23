@@ -115,7 +115,7 @@ public class GameFightDBController {
         }
         deactivate(looser);
         gameLog = game.getGameLog();
-
+        saveGameResult(winner, looser, gameLog);
     }
 
     // deactivate dead units except temporary user 'Noname'
@@ -206,11 +206,16 @@ public class GameFightDBController {
 
                 // upsert newUserUnit;
                 // understanding the leak of system resources here, upsert was changed
-
+                Database.SaveResult saveResult;
                 if (FieldsChecker.hasSObjectField(newUserUnit, 'Id')) {
-                    update newUserUnit;
+                    saveResult = Database.update(newUserUnit);
                 } else {
-                    insert newUserUnit;
+                    saveResult = Database.insert(newUserUnit);
+                }
+                if(!saveResult.isSuccess()){
+                    for(Database.Error error:saveResult.getErrors()){
+                         errorMessage = errorMessage+error.message;
+                    }
                 }
 
                 isShowUserChosenUnit = true;
@@ -247,9 +252,20 @@ public class GameFightDBController {
     }
 
     // to adoid saving by pressing 'Enter'
-    public PageReference save() {
-        return null;
+//    public PageReference save() {
+//        return null;
+//    }
+
+    // save fight results to the DB
+    private void saveGameResult(GameFightUnit__c winner, GameFightUnit__c looser, List<String> gameLog){
+        String gameLogString = '';
+        for(String s: gameLog){
+            gameLogString = gameLogString + s + '\n';
+        }
+        Fight__c fight = new Fight__c(Winner__c = winner.Id, Looser__c = looser.Id, Game_Log__c = gameLogString);
+        insert fight;
     }
+
 
     //todo: add HitRange and HitBlock
     //
