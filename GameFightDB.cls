@@ -41,7 +41,12 @@ public with sharing class GameFightDB {
     }
 
     private void round(GameFightUnit__c unit1, GameFightUnit__c unit2) {
-        Decimal leftHp = unit1.HealthPoint__c - randomKick(unit2);
+//        Decimal leftHp = unit1.HealthPoint__c - randomKick(unit2);
+        Block__c block = generateRandomBlock();
+        system.debug(block.Body_part__r.Name);
+        Hit__c hit = generateRandomHit();
+        system.debug(hit.Body_part__r.Name);
+        Decimal leftHp = unit1.HealthPoint__c - randomKickWithHitAndBlock(unit2, block, hit);
         if (leftHp > 0) {
             gameLog.add(unit1.Name + ' left ' + leftHp + ' health points.');
             unit1.HealthPoint__c = leftHp;
@@ -52,10 +57,52 @@ public with sharing class GameFightDB {
     }
 
     private Integer randomKick(GameFightUnit__c unit) {
-        Double damageDouble = (Math.floor(Math.random() * (unit.DamageMax__c - unit.DamageMin__c + 1) + unit.DamageMax__c));
+        Double damageDouble = (Math.floor(Math.random() * (unit.DamageMax__c - unit.DamageMin__c + 1) + unit.DamageMin__c));
         Integer damage = damageDouble.intValue();
         gameLog.add(unit.Name + ' kicks with ' + damage + ' damages.');
         return damage;
     }
 
+    private Integer randomKickWithHitAndBlock(GameFightUnit__c unit, Block__c block, Hit__c hit) {
+        Double damageDouble = (Math.floor(Math.random() * (unit.DamageMax__c - unit.DamageMin__c + 1) + unit.DamageMin__c));
+        Integer damage = damageDouble.intValue();
+        if (block.Body_part__c == hit.Body_part__c) {
+            damage = 0;
+            gameLog.add(unit.Name + ' kicks with ' + damage + ' damages through the block '+block.Body_part__r.Name);
+        } else {
+            gameLog.add(unit.Name + ' kicks with ' + damage + ' damages.');
+        }
+        return damage;
+    }
+
+    // generate random block
+    private Block__c generateRandomBlock() {
+        List<Block__c> blocks = [
+                SELECT Id, Body_part__r.Id, Body_part__r.Name
+                FROM Block__c
+        ];
+        Integer size = blocks.size();
+        Integer index = 0;
+        if (size > 0) {
+            index = (Math.floor(Math.random() * size)).intValue();
+            return blocks.get(index);
+        }
+        return new Block__c(Body_part__c = 'Noname' + String.valueOf(Math.random() * 1000));
+    }
+
+    // generate random hit
+    private Hit__c generateRandomHit() {
+        List<Hit__c> hits = [
+                SELECT Id, Body_part__r.Id, Body_part__r.Name
+                FROM Hit__c
+        ];
+        Integer size = hits.size();
+        Integer index = 0;
+        if (size > 0) {
+            index = (Math.floor(Math.random() * size)).intValue();
+            return hits.get(index);
+        }
+        return new Hit__c(Body_part__c = 'Noname' + String.valueOf(Math.random() * 1000));
+    }
+    //todo: put retrieving data from DB (blocks && hits) to constructor and lists to vars
 }
