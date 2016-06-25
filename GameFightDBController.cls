@@ -4,7 +4,12 @@ public class GameFightDBController {
     public GameFightUnit__c userUnit { get; set; }
     public GameFightUnit__c newUserUnit { get; set; }
     public GameFightUnit__c winner { get; set; }
+    public GameFightUnit__c activeUnit { get; set; }
     public List<GameFightUnit__c> activeUnits { get; set; }
+    public List<Hit__c> hits { get; set; }
+    public List<Block__c> blocks { get; set; }
+    public Hit__c userHit { get; set; }
+    public Block__c userBlock { get; set; }
     public Boolean isShowResult { get; set; }
     public Boolean isShowUserUnit { get; set; }
     public Boolean isShowSystemUnit { get; set; }
@@ -12,22 +17,29 @@ public class GameFightDBController {
     public Boolean isNewUserSaveDisabled { get; set; }
     public Boolean isShowGameStart { get; set; }
     public Boolean isShowMessage { get; set; }
+    public Boolean isShowChooseBlockPanel { get; set; }
+    public Boolean isShowChooseHitPanel { get; set; }
     public List<String> gameLog { get; set; }
     public String userChoice { get; set; }
+    public String userHitChoice { get; set; }
+    public String userBlockChoice { get; set; }
     public String errorMessage { get; set; }
+    public Integer roundNumber { get; set; }
+
 
 
     public GameFightDBController() {
-        userChoice = '';
         errorMessage = '';
         gamelog = new List<String>();
         isShowResult = false;
         isShowUserUnit = false;
         isShowSystemUnit = false;
         isShowUserChosenUnit = false;
-        isNewUserSaveDisabled = true;
+//        isNewUserSaveDisabled = true;
         isShowMessage = false;
         isShowGameStart = false;
+        isShowChooseBlockPanel = false;
+        isShowChooseHitPanel = false;
     }
 
     public void initGameUnits() {
@@ -35,18 +47,31 @@ public class GameFightDBController {
         isShowUserUnit = true;
         isShowUserChosenUnit = false;
         isNewUserSaveDisabled = true;
+        isShowChooseBlockPanel = false;
+        isShowChooseHitPanel = false;
         isShowResult = false;
         isShowGameStart = false;
         isShowMessage = false;
         // don't change the order of methods!
         checkUnitsActivity();
         activeUnits = getActiveUnitsFromDB();
+        hits = getHitsFromDB();
+        blocks = getBlocksFromDB();
         systemUnit = getRandomActiveUnit();
         userUnit = new GameFightUnit__c(name = '', HealthPoint__c = 0, DamageMin__c = 0, DamageMax__c = 0);
         newUserUnit = new GameFightUnit__c(name = '', HealthPoint__c = 0, DamageMin__c = 0, DamageMax__c = 0);
         userChoice = '';
+        userHitChoice = '';
+        userBlockChoice = '';
         gamelog.clear();
         winner = null;
+        activeUnit = null;
+        userHit = null;
+        userBlock = null;
+        game = new GameFightDB();
+        game.setHits(hits);
+        game.setBlocks(blocks);
+        roundNumber = 1;
     }
 
     // get list of active Units from DB
@@ -57,20 +82,134 @@ public class GameFightDBController {
                 where IsActive__c = true
         ];
     }
+    // get list of Hits from DB
+    private List<Hit__c> getHitsFromDB() {
+        return [
+                SELECT Id, Body_part__r.Id, Body_part__r.Name
+                FROM Hit__c
+        ];
+    }
+
+    // get list of Blocks from DB
+    private List<Block__c> getBlocksFromDB() {
+        return [
+                SELECT Id, Body_part__r.Id, Body_part__r.Name
+                FROM Block__c
+        ];
+    }
 
     public PageReference chooseUnit() {
-        assignUserChoise();
+        assignUserUnitChoise();
+        return null;
+    }
+    public PageReference chooseHit() {
+        assignUserHitChoise();
+        fight(FightType.STEP_BY_STEP);
+        return null;
+    }
+    public PageReference chooseBlock() {
+        assignUserBlockChoise();
+        fight(FightType.STEP_BY_STEP);
         return null;
     }
 
-    public PageReference fightButton() {
-        fight();
+    private void assignUserHitChoise() {
+        if (String.isNotBlank(userHitChoice) && !'-- Select Hit --'.equals(userHitChoice) && !'-- Not Required --'.equals(userHitChoice)) {
+            // search by HitId  and get Hit from list hits
+            for (Hit__c hit: hits) {
+                if (hit.Id.equals(userHitChoice)) {
+                    userHit = hit;
+                }
+            }
+            isShowMessage = false;
+        } else {
+            errorMessage = 'Please select user hit.';
+            isShowMessage = true;
+        }
+    }
+
+    private void assignUserBlockChoise() {
+        if (String.isNotBlank(userBlockChoice) && !'-- Select Block --'.equals(userBlockChoice) && !'-- Not Required --'.equals(userBlockChoice)) {
+            // search by HitId  and get Hit from list hits
+            for (Block__c block: blocks) {
+                if (block.Id.equals(userBlockChoice)) {
+                    userBlock = block;
+                }
+            }
+            isShowMessage = false;
+        } else {
+            errorMessage = 'Please select user block.';
+            isShowMessage = true;
+        }
+    }
+    public PageReference autoFightButton() {
+        fight(FightType.AUTO);
         isShowResult = true;
         isShowUserUnit = false;
         isShowGameStart = false;
         return null;
     }
+    public PageReference stepByStepFightButton() {
+        defineUnitTurn();
+        isShowUserUnit = false;
+        isShowGameStart = false;
+        return null;
+    }
 
+    private void defineUnitTurn() {
+        activeUnit = game.defineUnitTurn(systemUnit, userUnit);
+        if (activeUnit == systemUnit) {
+            isShowChooseBlockPanel = true;
+            isShowChooseHitPanel = false;
+        } else if (activeUnit == userUnit) {
+            isShowChooseBlockPanel = false;
+            isShowChooseHitPanel = true;
+        }
+        isShowUserUnit = false;
+        isShowGameStart = false;
+    }
+
+
+    private void fight(FightType type) {
+        game.setFightType(type);
+
+        GameFightUnit__c looser;
+        if (type == FightType.AUTO) {
+            looser = game.fight(systemUnit, userUnit);
+        } else if (type == FightType.STEP_BY_STEP) {
+            if (userUnit == activeUnit) {
+                looser = game.oneStepFight(userUnit, systemUnit, userHit, null);
+            } else if (systemUnit == activeUnit) {
+                looser = game.oneStepFight(systemUnit, userUnit, null, userBlock);
+            } else {
+                throw new GameFightException('Unknown Unit.');
+            }
+            if (looser.HealthPoint__c > 0) {
+                //next round
+                defineUnitTurn();
+                gameLog = game.getGameLog();
+                roundNumber = game.getRoundNumber();
+                userHitChoice = '';
+                userBlockChoice = '';
+                return; //if not finished
+            } else {
+                // go to finish
+                isShowChooseHitPanel = false;
+                isShowChooseBlockPanel = false;
+                isShowResult = true;
+            }
+        } else {
+            throw new GameFightException('Unknown Figth Type.');
+        }
+        if (looser == userUnit) {
+            winner = systemUnit;
+        } else {
+            winner = userUnit;
+        }
+        deactivate(looser);
+        gameLog = game.getGameLog();
+        saveGameResult(winner, looser, gameLog);
+    }
     // retrieve random unit from DB to fight with user
     private GameFightUnit__c getRandomActiveUnit() {
         Integer size = activeUnits.size();
@@ -104,20 +243,6 @@ public class GameFightDBController {
         }
     }
 
-    private void fight() {
-        game = new GameFightDB();
-        winner = game.fight(systemUnit, userUnit);
-        GameFightUnit__c looser;
-        if (winner == systemUnit) {
-            looser = userUnit;
-        } else {
-            looser = systemUnit;
-        }
-        deactivate(looser);
-        gameLog = game.getGameLog();
-        saveGameResult(winner, looser, gameLog);
-    }
-
     // deactivate dead units except temporary user 'Noname'
     private void deactivate(final GameFightUnit__c looser) {
         if (looser.name != 'Noname') {
@@ -135,43 +260,16 @@ public class GameFightDBController {
                 loosersUnit.DeactivationTime__c = DateTime.now();
                 update loosersUnit;
             } else if (loosersUnits.isEmpty()) {
-                throw new UpdateLooserException('Error update looser - not found');
+                throw new GameFightException('Error update looser - not found');
             } else {
-                throw new UpdateLooserException('Error update looser - save not unique');
+                throw new GameFightException('Error update looser - save not unique');
             }
         }
     }
 
-    // To generate the units picklist based on the active units in DB except chosen system unit
-    public List<SelectOption> getUserUnitSelectList() {
-        List<SelectOption> options = new List<SelectOption>();
-
-        List<GameFightUnit__c> userUnits = new List<GameFightUnit__c>();
-        for (GameFightUnit__c unit: activeUnits) {
-            if (unit != systemUnit) {
-                userUnits.add(unit);
-            }
-        }
-        // Sort the units based on their names
-        userUnits.sort();
-
-        // Generate the Select Options based on the final sorted list
-        for (GameFightUnit__c unit : userUnits) {
-            String unitString = unit.Name + ':   HealthPoints = ' + unit.HealthPoint__c + ', DamageMin = ' + unit.DamageMin__c + ', DamageMax = ' + unit.DamageMax__c ;
-            options.add(new SelectOption(unit.Id, unitString));
-        }
-
-        // If no units are found, just say not required in the dropdown.
-        if (options.size() > 0) {
-            options.add(0, new SelectOption('', '-- Select One --'));
-        } else {
-            options.add(new SelectOption('', '-- Not Required --'));
-        }
-        return options;
-    }
 
     // assign chosen user unit to userUnit if selection is proper
-    private void assignUserChoise() {
+    private void assignUserUnitChoise() {
         if (String.isNotBlank(userChoice) && !'-- Select One --'.equals(userChoice) && !'-- Not Required --'.equals(userChoice)) {
             // search by unitId  and get unit from list activeUnits
             for (GameFightUnit__c unit: activeUnits) {
@@ -212,9 +310,9 @@ public class GameFightDBController {
                 } else {
                     saveResult = Database.insert(newUserUnit);
                 }
-                if(!saveResult.isSuccess()){
-                    for(Database.Error error:saveResult.getErrors()){
-                         errorMessage = errorMessage+error.message;
+                if (!saveResult.isSuccess()) {
+                    for (Database.Error error:saveResult.getErrors()) {
+                        errorMessage = errorMessage + error.message;
                     }
                 }
 
@@ -247,26 +345,71 @@ public class GameFightDBController {
             isNewUserSaveDisabled = false;
             isShowMessage = false;
         }
-
         return null;
     }
 
-    // to adoid saving by pressing 'Enter'
-//    public PageReference save() {
-//        return null;
-//    }
-
     // save fight results to the DB
-    private void saveGameResult(GameFightUnit__c winner, GameFightUnit__c looser, List<String> gameLog){
+    private void saveGameResult(GameFightUnit__c winner, GameFightUnit__c looser, List<String> gameLog) {
         String gameLogString = '';
-        for(String s: gameLog){
+        for (String s: gameLog) {
             gameLogString = gameLogString + s + '\n';
         }
         Fight__c fight = new Fight__c(Winner__c = winner.Id, Looser__c = looser.Id, Game_Log__c = gameLogString);
         insert fight;
     }
 
+    // Generate the units picklist based on the active units in DB except chosen system unit
+    public List<SelectOption> getUserUnitSelectList() {
+        List<SelectOption> options = new List<SelectOption>();
 
-    //todo: add HitRange and HitBlock
-    //
+        List<GameFightUnit__c> userUnits = new List<GameFightUnit__c>();
+        for (GameFightUnit__c unit: activeUnits) {
+            if (unit != systemUnit) {       //except chosen system unit
+                userUnits.add(unit);
+            }
+        }
+        // Sort the units based on their names
+        userUnits.sort();
+
+        // Generate the Select Options based on the final sorted list
+        for (GameFightUnit__c unit : userUnits) {
+            String unitString = unit.Name + ':   HealthPoints = ' + unit.HealthPoint__c + ', DamageMin = ' + unit.DamageMin__c + ', DamageMax = ' + unit.DamageMax__c ;
+            options.add(new SelectOption(unit.Id, unitString));
+        }
+
+        // If no units are found, just say not required in the dropdown.
+        if (options.size() > 0) {
+            options.add(0, new SelectOption('', '-- Select One --'));
+        } else {
+            options.add(new SelectOption('', '-- Not Required --'));
+        }
+        return options;
+    }
+
+    // Generate the Hits picklist
+    public List<SelectOption> getUserHitSelectList() {
+        List<SelectOption> options = new List<SelectOption>();
+        for (Hit__c hit: hits) {
+            options.add(new SelectOption(hit.Id, hit.Body_part__r.Name));
+        }
+        if (options.size() > 0) {
+            options.add(0, new SelectOption('', '-- Select Hit --'));
+        } else {
+            options.add(new SelectOption('', '-- Not Required --'));
+        }
+        return options;
+    }
+    // Generate the Blocks picklist
+    public List<SelectOption> getUserBlockSelectList() {
+        List<SelectOption> options = new List<SelectOption>();
+        for (Block__c block: blocks) {
+            options.add(new SelectOption(block.Id, block.Body_part__r.Name));
+        }
+        if (options.size() > 0) {
+            options.add(0, new SelectOption('', '-- Select Block --'));
+        } else {
+            options.add(new SelectOption('', '-- Not Required --'));
+        }
+        return options;
+    }
 }
