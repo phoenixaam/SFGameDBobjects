@@ -1,4 +1,3 @@
-
 public with sharing class FieldsChecker {
      /**
       * check if an Sobject has a field
