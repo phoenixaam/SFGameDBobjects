@@ -32,3 +32,5 @@ If the user's kick matches with opponent's block - damage will not be applied an
 <li> Block__c - block</li>
 <li> Hit__c - hit </li>
 <li> Body_part__c - list body parts for blocking and hitting</li>
+
+<p> Implemented AutoFight functionality as well as StepByStep Fight</p>
