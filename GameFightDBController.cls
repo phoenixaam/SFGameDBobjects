@@ -171,7 +171,6 @@ public class GameFightDBController {
 
 
     private void fight(FightType type) {
-        game.setFightType(type);
 
         GameFightUnit__c looser;
         if (type == FightType.AUTO) {

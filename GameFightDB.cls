@@ -8,7 +8,6 @@
 public with sharing class GameFightDB {
 
     private List<String> gameLog;
-    private FightType fType;
     private List<Hit__c> hits;
     private List<Block__c> blocks;
     private Integer roundNumber;
@@ -19,10 +18,6 @@ public with sharing class GameFightDB {
 
     public Integer getRoundNumber() {
         return roundNumber;
-    }
-
-    public void setFightType(FightType fType) {
-        this.fType = fType;
     }
 
     public void setHits(List<Hit__c> hits) {
@@ -41,7 +36,7 @@ public with sharing class GameFightDB {
      * Defines which unit will win in the battle.
      * @param unit1
      * @param unit2
-     * @return winner unit
+     * @return looser unit
      */
     public GameFightUnit__c fight(GameFightUnit__c unit1, GameFightUnit__c unit2) {
 
