@@ -1,4 +1,6 @@
 public class GameFightDBController {
+    public static final Integer DEFAULT_INACTIVITY_PERIOD = 24;
+
     public GameFightDB game { get; set; }
     public GameFightUnit__c systemUnit { get; set; }
     public GameFightUnit__c userUnit { get; set; }
@@ -19,13 +21,17 @@ public class GameFightDBController {
     public Boolean isShowMessage { get; set; }
     public Boolean isShowChooseBlockPanel { get; set; }
     public Boolean isShowChooseHitPanel { get; set; }
+    public Boolean isGetSystemUnitDisabled { get; set; }
+    public Boolean isInputPeriodDisabled { get; set; }
+    public Boolean isSetInputPeriodDisabled { get; set; }
+    public Boolean isSetPeriod { get; set; }
     public List<String> gameLog { get; set; }
     public String userChoice { get; set; }
     public String userHitChoice { get; set; }
     public String userBlockChoice { get; set; }
     public String errorMessage { get; set; }
     public Integer roundNumber { get; set; }
-
+    public Integer inactivityPeriod { get; set; }
 
 
     public GameFightDBController() {
@@ -35,18 +41,23 @@ public class GameFightDBController {
         isShowUserUnit = false;
         isShowSystemUnit = false;
         isShowUserChosenUnit = false;
-//        isNewUserSaveDisabled = true;
         isShowMessage = false;
         isShowGameStart = false;
         isShowChooseBlockPanel = false;
         isShowChooseHitPanel = false;
+        isInputPeriodDisabled = true;
+        isSetInputPeriodDisabled = false;
+        isSetPeriod = false;
+        inactivityPeriod = DEFAULT_INACTIVITY_PERIOD;
     }
 
     public void initGameUnits() {
-        isShowSystemUnit = true;
+        inactivityPeriod = 2;
+                isShowSystemUnit = true;
         isShowUserUnit = true;
         isShowUserChosenUnit = false;
         isNewUserSaveDisabled = true;
+        isInputPeriodDisabled = true;
         isShowChooseBlockPanel = false;
         isShowChooseHitPanel = false;
         isShowResult = false;
@@ -73,6 +84,27 @@ public class GameFightDBController {
         game.setBlocks(blocks);
         roundNumber = 1;
     }
+
+//    public PageReference checkPeriod() {
+//        //todo: check if integer? if bigger than 0
+//
+//        isGetSystemUnitDisabled = false;
+//
+//        return null;
+//    }
+
+
+//    public PageReference setPeriod() {
+//        inactivityPeriod = DEFAULT_INACTIVITY_PERIOD;
+//        isInputPeriodDisabled = false;
+//        isGetSystemUnitDisabled = true;
+//        if (isSetPeriod) {
+//           isSetPeriod = false;
+//        } else{
+//            isSetPeriod = true;
+//        }
+//        return null;
+//    }
 
     // get list of active Units from DB
     private List<GameFightUnit__c> getActiveUnitsFromDB() {
