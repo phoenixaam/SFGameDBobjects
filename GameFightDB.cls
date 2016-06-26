@@ -1,7 +1,4 @@
 /**
- * Created by phoenix on 18.06.2016.
- */
-/**
  * The battle between two units.
  * We simulate random battles and define the winner unit.
  */
@@ -56,7 +53,18 @@ public with sharing class GameFightDB {
 
     }
 
+    /*
+    * defines which unit win in particular step
+    * throws exception if one of units is null
+    * @param: unit1
+    * @param: unit2
+    * @param: hit - can be null
+    * @param: block - can be null
+     */
     public GameFightUnit__c oneStepFight(GameFightUnit__c unit1, GameFightUnit__c unit2, Hit__c hit, Block__c block) {
+        if (unit1 == null || unit2 == null) {
+            throw new GameFightException('Wrong parameter in oneStepFight(): Unit in fight can not be null');
+        }
         if (hit == null) {
             hit = generateRandomHit();
         }
@@ -82,14 +90,23 @@ public with sharing class GameFightDB {
         return unit2;
     }
 
-    // define random damage accordingly to the unit properties
+    /*
+     * defines random damage accordingly to the unit properties
+     * @param: unit
+     * @return: damage
+     */
     private Integer randomKick(GameFightUnit__c unit) {
         Double damageDouble = (Math.floor(Math.random() * (unit.DamageMax__c - unit.DamageMin__c + 1) + unit.DamageMin__c));
         Integer damage = damageDouble.intValue();
         return damage;
     }
 
-    // randomizing players turn
+    /*
+     * randomize players turn
+     * @param: unit1
+     * @param: unit2
+     * @return: unit
+     */
     public GameFightUnit__c defineUnitTurn(GameFightUnit__c unit1, GameFightUnit__c unit2) {
         if (Math.random() < 0.5) {
             return(unit1);
@@ -98,7 +115,10 @@ public with sharing class GameFightDB {
         }
     }
 
-    // generate random block
+    /*
+     * get random block
+     * throws exception if list of available blocks is empty
+     */
     private Block__c generateRandomBlock() {
         Integer size = blocks.size();
         Integer index = 0;
@@ -110,7 +130,10 @@ public with sharing class GameFightDB {
         }
     }
 
-    // generate random hit
+    /*
+     * get random hit
+     * throws exception if list of available hits is empty
+     */
     private Hit__c generateRandomHit() {
         Integer size = hits.size();
         Integer index = 0;

@@ -34,11 +34,11 @@
     <apex:outputPanel id="UserUnit">
         <apex:form>
             <apex:actionFunction name="selectUserUnitFromList" action="{!chooseUnit}"
-                                 rerender="ChosenUnit, UserUnit, ErrorUnit, GameStart"/>
+                                 rerender="ChosenUnit, UserUnit, ErrorPanel, GameStart"/>
             <apex:actionFunction name="saveNewUserUnit" action="{!saveNewUnit}"
-                                 rerender="ChosenUnit, UserUnit, ErrorUnit, GameStart"/>
+                                 rerender="ChosenUnit, UserUnit, ErrorPanel, GameStart"/>
             <apex:actionFunction name="checkNewUserUnitFilling" action="{!checkNewUnit}"
-                                 rerender="ChosenUnit, ErrorUnit, GameStart, SaveButton"/>
+                                 rerender="ChosenUnit, ErrorPanel, GameStart, SaveButton"/>
             <apex:pageBlock title="User unit" id="user_units" rendered="{!isShowUserUnit}">
                 <apex:pageBlockSection columns="5" title="Please choose your unit or create your own unit">
                     <apex:selectList value="{!userChoice}" id="userUnitSelectList" styleclass="std" size="1"
@@ -55,15 +55,15 @@
                     <apex:inputField value="{!newUserUnit.DamageMax__c}" label="DamageMax:"
                                      onkeyup="{checkNewUserUnitFilling()}"/>
                     <apex:commandButton id="SaveButton" value="Save new unit" onClick="saveNewUserUnit()"
-                                        disabled="{!isNewUserSaveDisabled}" reRender="ErrorUnit"/>
+                                        disabled="{!isNewUserSaveDisabled}" reRender="ErrorPanel"/>
                 </apex:pageBlockSection>
             </apex:pageBlock>
         </apex:form>
     </apex:outputPanel>
 
-    <apex:outputPanel id="ErrorUnit">
+    <apex:outputPanel id="ErrorPanel">
         <apex:form>
-            <apex:pageBlock title="Error!" id="error_unit" rendered="{!isShowMessage}">
+            <apex:pageBlock title="Error!" id="error" rendered="{!isShowMessage}">
                 <apex:outputText value="{!errorMessage}"/>
             </apex:pageBlock>
         </apex:form>
@@ -92,9 +92,9 @@
     <apex:outputPanel id="StepByStep">
         <apex:form>
             <apex:actionFunction name="selectUserHitFromList" action="{!chooseHit}"
-                                 reRender="ErrorUnit, StepByStep, Results"/>
+                                 reRender="ErrorPanel, StepByStep, Results"/>
             <apex:actionFunction name="selectUserBlockFromList" action="{!chooseBlock}"
-                                 reRender="ErrorUnit, StepByStep, Results"/>
+                                 reRender="ErrorPanel, StepByStep, Results"/>
 
             <apex:pageBlock title="Round:{!roundNumber}. User's turn.  Hit of {!userUnit.Name}" id="user_turn" rendered="{!isShowChooseHitPanel}">
                 <apex:pageBlockSection columns="2">
