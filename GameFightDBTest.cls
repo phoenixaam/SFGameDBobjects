@@ -8,6 +8,9 @@ private class GameFightDBTest {
 
     }
 
+    /*
+     * test battle in auto-fight mode
+     */
     static testMethod void testAutoFight() {
         List<Block__c> blocks = new List<Block__c>();
         List<Hit__c> hits = new List<Hit__c>();
@@ -51,6 +54,9 @@ private class GameFightDBTest {
 
     }
 
+    /*
+     * test exceptions in auto-fight mode
+     */
     static testMethod void testAutoFightExceptions() {
         GameFightUnit__c gameUnit1 = new GameFightUnit__c(name='TestUnit1', HealthPoint__c = 100,
                 DamageMin__c = 1, DamageMax__c = 2);
@@ -85,6 +91,10 @@ private class GameFightDBTest {
         System.assertEquals(null, winner2, 'return object instead of null');
     }
 
+
+    /*
+     * test units turn defining
+     */
     static testMethod void testDefineUnitTurn() {
         GameFightUnit__c gameUnit1 = new GameFightUnit__c();
         GameFightUnit__c gameUnit2 = new GameFightUnit__c();
