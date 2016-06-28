@@ -122,7 +122,7 @@ public class GameFightDBController {
       */
     private List<GameFightUnit__c> getActiveUnitsFromDB() {
         return [
-                select Id, Name, HealthPoint__c, DamageMin__c, DamageMax__c, IsActive__c, DeactivationTime__c
+                select Id, Name, HealthPoint__c, DamageMin__c, DamageMax__c, IsActive__c, DeactivationTime__c, VictoryCount__c
                 from GameFightUnit__c
                 where IsActive__c = true
         ];
@@ -260,8 +260,23 @@ public class GameFightDBController {
         } else {
             throw new GameFightException('Unknown Unit.');
         }
+//        GameFightUnit__c looserForUpdate = looser;
         deactivate(looser);
         gameLog = game.getGameLog();
+        System.debug('winner.id=' + winner.Id);
+        List<GameFightUnit__c> winnersForUpdate = [
+                SELECT VictoryCount__c, Rank__c
+                FROM GameFightUnit__c
+                WHERE Id = :winner.Id
+        ];
+        System.debug('winners.size=' + winnersForUpdate.size());
+        GameFightUnit__c winnerForUpdate = winnersForUpdate.get(0);
+        if (winnerForUpdate.VictoryCount__c == null) {
+            winnerForUpdate.VictoryCount__c = 1;
+        } else {
+            winnerForUpdate.VictoryCount__c = winnerForUpdate.VictoryCount__c + 1;
+        }
+        update winnerForUpdate;
         saveGameResult(winner, looser, gameLog);
     }
 
@@ -308,29 +323,29 @@ public class GameFightDBController {
      * throws exception when unit "looser" not found in DB
      * @param: unit
      */
-    private void deactivate(final GameFightUnit__c looser) {
-        if(looser!=null){
-            if (looser.name != 'Noname') {
+    private void deactivate(final GameFightUnit__c looserUnit) {
+        if (looserUnit != null) {
+            if (looserUnit.name != 'Noname') {
                 //we don't want to save current unit with no health points
                 // then we get it from DB
-                String looserId = looser.Id;
+                String looserId = looserUnit.Id;
                 List<GameFightUnit__c> loosersUnits = [
                         select DeactivationTime__c, IsActive__c
                         from GameFightUnit__c
-                        where Id = :looser.Id
+                        where Id = :looserUnit.Id
                 ];
                 if (loosersUnits.size() == 1) {
-                    GameFightUnit__c loosersUnit = loosersUnits.get(0);
-                    loosersUnit.IsActive__c = false;
-                    loosersUnit.DeactivationTime__c = DateTime.now();
-                    update loosersUnit;
+                    GameFightUnit__c loosersUnitDB = loosersUnits.get(0);
+                    loosersUnitDB.IsActive__c = false;
+                    loosersUnitDB.DeactivationTime__c = DateTime.now();
+                    update loosersUnitDB;
                 } else if (loosersUnits.isEmpty()) {
                     throw new GameFightException('Error update looser - not found');
                 } else {
                     throw new GameFightException('Error update looser - save not unique');
                 }
             }
-        } else{
+        } else {
             throw new GameFightException('Error deactivating looser - nothing to unique');
         }
 
@@ -348,18 +363,21 @@ public class GameFightDBController {
             isShowMessage = true;
             return null;
         } else {
-            if (String.isNotBlank(newUserUnit.Name) && newUserUnit.HealthPoint__c != 0 && newUserUnit.DamageMin__c != 0
-                    && newUserUnit.DamageMax__c != 0 && newUserUnit.DamageMin__c <= newUserUnit.DamageMax__c) {
-
+            if (String.isNotBlank(newUserUnit.Name) && newUserUnit.HealthPoint__c >= 0 && newUserUnit.DamageMin__c >= 0
+                    && newUserUnit.DamageMax__c >= 0 && newUserUnit.DamageMin__c <= newUserUnit.DamageMax__c) {
+                System.debug('before save');
                 // upsert newUserUnit;
                 // understanding the leak of system resources here, upsert was changed
                 Database.SaveResult saveResult;
                 if (FieldsChecker.hasSObjectField(newUserUnit, 'Id')) {
                     saveResult = Database.update(newUserUnit);
+                    System.debug('update');
                 } else {
                     saveResult = Database.insert(newUserUnit);
+                    System.debug('insert');
                 }
                 if (!saveResult.isSuccess()) {
+                    System.debug('!saveResult.isSuccess');
                     for (Database.Error error:saveResult.getErrors()) {
                         errorMessage = errorMessage + error.message;
                     }
@@ -478,7 +496,7 @@ public class GameFightDBController {
      * assign chosen user unit to userUnit if selection is proper
      */
     private void assignUserUnitChoise() {
-        if (String.isNotBlank(userChoice) && !'-- Select One --'.equals(userChoice) && !'-- Not Required --'.equals(userChoice)) {
+        if (String.isNotBlank(userChoice) && !('-- Select One --'.equals(userChoice)) && !('-- Not Required --'.equals(userChoice))) {
             // search by unitId  and get unit from list activeUnits
             for (GameFightUnit__c unit: activeUnits) {
                 if (unit.Id.equals(userChoice)) {
