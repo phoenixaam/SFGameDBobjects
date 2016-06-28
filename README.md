@@ -34,3 +34,6 @@ If the user's kick matches with opponent's block - damage will not be applied an
 <li> Body_part__c - list body parts for blocking and hitting</li>
 
 <p> Implemented AutoFight functionality as well as StepByStep Fight</p>
+<p> Added Tests for all classes</p>
+<p> Added trigger for updating Unit's fields Rank__c and Percent_of_success__c depend on VictoryCount__c and the total number of fights by Unit</p>
+<p> Added Butch for update fiels IsActive every 12 hours</p>
