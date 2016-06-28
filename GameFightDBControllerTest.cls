@@ -6,10 +6,13 @@ private class GameFightDBControllerTest {
         GameFightUnit__c gameUnit1 = new GameFightUnit__c(name = 'TestUnit1', HealthPoint__c = 100, DamageMin__c = 1, DamageMax__c = 2);
         GameFightUnit__c gameUnit2 = new GameFightUnit__c(name = 'TestUnit2', HealthPoint__c = 100, DamageMin__c = 1, DamageMax__c = 2);
         GameFightUnit__c gameUnit3 = new GameFightUnit__c(name = 'TestUnit3', HealthPoint__c = 100, DamageMin__c = 1, DamageMax__c = 2);
+        GameFightUnit__c gameUnit4 = new GameFightUnit__c(name = 'TestUnit4', HealthPoint__c = 100, DamageMin__c = 1, DamageMax__c = 2,
+                DeactivationTime__c = DateTime.now().addDays(-2));
         List<GameFightUnit__c> activeTestUnits = new List<GameFightUnit__c>();
         activeTestUnits.add(gameUnit1);
         activeTestUnits.add(gameUnit2);
         activeTestUnits.add(gameUnit3);
+        activeTestUnits.add(gameUnit4);
         insert activeTestUnits;
         //create bodyParts
         Body_part__c bp1 = new Body_part__c(Name = 'bp1');
@@ -51,23 +54,22 @@ private class GameFightDBControllerTest {
 
         String userChoice = '';
 
-        GameFightUnit__c newRightUserUnit = new GameFightUnit__c(Name = 'testunit', HealthPoint__c = 10, DamageMin__c = 0, DamageMax__c = 5);
+        GameFightUnit__c newRightUserUnit = new GameFightUnit__c(Name = 'testunit', HealthPoint__c = 10, DamageMin__c = 1, DamageMax__c = 5);
         GameFightUnit__c newWrongNameUserUnit = new GameFightUnit__c(Name = '', HealthPoint__c = 10, DamageMin__c = 0, DamageMax__c = 5);
         GameFightUnit__c newWrongHealthUserUnit = new GameFightUnit__c(Name = 'testunit', HealthPoint__c = 0, DamageMin__c = 0, DamageMax__c = 5);
         GameFightUnit__c newWrongDamageUserUnit = new GameFightUnit__c(Name = 'testunit', HealthPoint__c = 10, DamageMin__c = 10, DamageMax__c = 5);
 
         controller.newUserUnit = newRightUserUnit;
         controller.saveNewUnit();
-//        System.assertEquals(newRightUserUnit, controller.userUnit, 'newUserUnit was not saved.');
+        System.assertEquals(newRightUserUnit, controller.userUnit, 'newUserUnit was not saved.');
 
-        //todo: test insert & test update
-//        List<GameFightUnit__c> testsaves = [
-//                SELECT Name
-//                FROM GameFightUnit__c
-//                WHERE Id = :controller.userUnit.Id
-//        ];
-//
-//        System.assertEquals('testunit', testsaves.get(0).Name, 'Name does not equal.');
+        List<GameFightUnit__c> testsaves = [
+                SELECT Name
+                FROM GameFightUnit__c
+                WHERE Id = :controller.userUnit.Id
+        ];
+
+        System.assertEquals('testunit', testsaves.get(0).Name, 'Name does not equal.');
 
         controller.newUserUnit = newWrongNameUserUnit;
         controller.saveNewUnit();
@@ -96,7 +98,7 @@ private class GameFightDBControllerTest {
         ];
         //Test many records list
         options = controller.getUserUnitSelectList();
-        System.assertEquals(4, options.size(), 'many records list of Units creation');
+        System.assertEquals(5, options.size(), 'many records list of Units creation');
     }
 
     /*
@@ -143,19 +145,33 @@ private class GameFightDBControllerTest {
     static testMethod void testInitGameUnits() {
         GameFightDBController controller = new GameFightDBController();
         controller.initGameUnits();
-        System.assertEquals(3, controller.activeUnits.size(), 'get list of active units');
+        System.assertEquals(4, controller.activeUnits.size(), 'get list of active units');
         System.assertEquals(3, controller.hits.size(), 'get list of hits');
         System.assertEquals(3, controller.blocks.size(), 'get list of blocks');
         System.assertEquals(true, controller.systemUnit.Name.startsWith('TestUnit'), 'get systemUnit from list of active units');
         System.assertEquals('', controller.userUnit.Name, 'assign userUnit');
         System.assertEquals(true, controller.game != null, 'assign game');
         System.assertEquals(0, controller.gameLog.size(), 'get empty list of logs');
-
-
-        //todo: test controller fields after battle
-
     }
 
+    /*
+     * test chooseUnit() method
+     */
+    static testMethod void testChooseUnit() {
+        GameFightDBController controller = new GameFightDBController();
+        GameFightUnit__c newRightUserUnit = new GameFightUnit__c(Name = 'testunit', HealthPoint__c = 10, DamageMin__c = 0, DamageMax__c = 5);
+        insert newRightUserUnit;
+        controller.activeUnits = new List<GameFightUnit__c>();
+        controller.activeUnits.add(newRightUserUnit);
+        String choice = newRightUserUnit.Id;
+        controller.userChoice = choice;
+        controller.chooseUnit();
+        System.assertEquals(newRightUserUnit, controller.userUnit, 'assign userUnit');
+    }
+
+    /*
+     * test pushing the AutoFight button
+     */
     static testMethod void testAutoFightButton() {
         GameFightDBController controller = new GameFightDBController();
         controller.initGameUnits();
@@ -163,5 +179,71 @@ private class GameFightDBControllerTest {
         insert newRightUserUnit;
         controller.userUnit = newRightUserUnit;
         controller.autoFightButton();
+        System.assertNotEquals(null, controller.winner, 'winner is null');
+        // check if results saved properly
+        List<Fight__c> fightsList = [
+                SELECT Winner__c, Looser__c, Game_Log__c
+                FROM Fight__c
+        ];
+        System.assertEquals(fightsList.get(0).Winner__c, controller.winner.Id, 'winner is not saved');
+        GameFightUnit__c looser;
+        if (controller.winner == controller.userUnit) {
+            looser = controller.systemUnit;
+        } else if (controller.winner == controller.systemUnit) {
+            looser = controller.userUnit;
+        } else
+                System.assertEquals(fightsList.get(0).Looser__c, looser.Id, 'looser is not saved');
+        String gameLog = fightsList.get(0).Game_Log__c;
+        System.assertEquals(true, gameLog.length() > 0, 'log is not saved');
     }
+
+    /*
+     * test step by step fight logic
+     */
+    static testMethod void testStepByStepButton() {
+        GameFightDBController controller = new GameFightDBController();
+        controller.initGameUnits();
+        GameFightUnit__c newRightUserUnit = new GameFightUnit__c(Name = 'testunit', HealthPoint__c = 100, DamageMin__c = 1, DamageMax__c = 5);
+        insert newRightUserUnit;
+        controller.userUnit = newRightUserUnit;
+        controller.activeUnit = newRightUserUnit;
+        controller.activeUnits.add(newRightUserUnit);
+        controller.stepByStepFightButton();
+        controller.userBlock = [
+                SELECT Id, Body_part__r.Id, Body_part__r.Name
+                FROM Block__c
+        ].get(0);
+        controller.userHit = [
+                SELECT Id, Body_part__r.Id, Body_part__r.Name
+                FROM Hit__c
+        ].get(0);
+        Integer logSize = controller.gameLog.size();
+        Integer rNumber = controller.roundNumber;
+        controller.chooseHit();
+        //this round won't be finished
+        System.assertEquals(null, controller.winner, 'winner has not to be chosen');
+        System.assertEquals(true, logSize < controller.gameLog.size(), 'log is not saved');
+        System.assertEquals(true, rNumber < controller.roundNumber, 'roundNumber is not saved');
+
+        //todo: test controller fields after Step
+        GameFightUnit__c newRightUserUnit1 = new GameFightUnit__c(Name = 'testunit', HealthPoint__c = 1, DamageMin__c = 10, DamageMax__c = 50);
+        GameFightUnit__c newRightUserUnit2 = new GameFightUnit__c(Name = 'testunit', HealthPoint__c = 1, DamageMin__c = 10, DamageMax__c = 50);
+        insert newRightUserUnit1;
+        insert newRightUserUnit2;
+        controller.userUnit = newRightUserUnit1;
+        controller.systemUnit = newRightUserUnit2;
+        controller.activeUnit = newRightUserUnit1;
+        controller.activeUnits.add(newRightUserUnit1);
+        controller.activeUnits.add(newRightUserUnit2);
+        // assign different parts to hit and block
+        controller.userHit = controller.hits.get(0);
+        controller.userBlock = controller.blocks.get(1);
+        controller.chooseBlock();
+        //this round have to be finished
+        System.assertNotEquals(null, controller.winner, 'winner has to be chosen');
+        System.assertEquals(true, logSize < controller.gameLog.size(), 'log is not saved');
+        System.assertEquals(true, rNumber < controller.roundNumber, 'roundNumber is not saved');
+    }
+
+    //todo: test controller fields after battle
 }
