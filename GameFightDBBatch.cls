@@ -1,9 +1,9 @@
 /*
- * batch for update isActive field on GameFightUnit objects
+ * batch for update Stamina and isActive fields on GameFightUnit objects
  */
 global class GameFightDBBatch implements Database.Batchable<sObject>{
     global Database.QueryLocator start(Database.BatchableContext BC){
-        return Database.getQueryLocator([SELECT Id, Name, IsActive__c, DeactivationTime__c FROM GameFightUnit__c ]);
+        return Database.getQueryLocator([SELECT Id, Name, Stamina__c, IsActive__c, DeactivationTime__c FROM GameFightUnit__c ]);
     }
 
     global void execute(Database.BatchableContext BC, List<sObject> scope){
@@ -11,8 +11,9 @@ global class GameFightDBBatch implements Database.Batchable<sObject>{
         for(GameFightUnit__c unit: (List<GameFightUnit__c>)scope){
             if (unit.DeactivationTime__c < DateTime.now().addDays(-1)) {
                 unit.IsActive__c = true;
-                updateUnitList.add(unit);
             }
+            unit.Stamina__c = 100;
+            updateUnitList.add(unit);
         }
         update updateUnitList;
         system.debug(updateUnitList);

@@ -3,10 +3,10 @@ private class GameFightDBControllerTest {
 
     @testSetup static void methodName() {
         // create units
-        GameFightUnit__c gameUnit1 = new GameFightUnit__c(name = 'TestUnit1', HealthPoint__c = 100, DamageMin__c = 1, DamageMax__c = 2);
-        GameFightUnit__c gameUnit2 = new GameFightUnit__c(name = 'TestUnit2', HealthPoint__c = 100, DamageMin__c = 1, DamageMax__c = 2);
-        GameFightUnit__c gameUnit3 = new GameFightUnit__c(name = 'TestUnit3', HealthPoint__c = 100, DamageMin__c = 1, DamageMax__c = 2);
-        GameFightUnit__c gameUnit4 = new GameFightUnit__c(name = 'TestUnit4', HealthPoint__c = 100, DamageMin__c = 1, DamageMax__c = 2,
+        GameFightUnit__c gameUnit1 = new GameFightUnit__c(name = 'TestUnit1', HealthPoint__c = 100, Stamina__c = 100, DamageMin__c = 1, DamageMax__c = 2);
+        GameFightUnit__c gameUnit2 = new GameFightUnit__c(name = 'TestUnit2', HealthPoint__c = 100, Stamina__c = 100, DamageMin__c = 1, DamageMax__c = 2);
+        GameFightUnit__c gameUnit3 = new GameFightUnit__c(name = 'TestUnit3', HealthPoint__c = 100, Stamina__c = 100, DamageMin__c = 1, DamageMax__c = 2);
+        GameFightUnit__c gameUnit4 = new GameFightUnit__c(name = 'TestUnit4', HealthPoint__c = 100, Stamina__c = 100, DamageMin__c = 1, DamageMax__c = 2,
                 DeactivationTime__c = DateTime.now().addDays(-2));
         List<GameFightUnit__c> activeTestUnits = new List<GameFightUnit__c>();
         activeTestUnits.add(gameUnit1);
@@ -54,10 +54,10 @@ private class GameFightDBControllerTest {
 
         String userChoice = '';
 
-        GameFightUnit__c newRightUserUnit = new GameFightUnit__c(Name = 'testunit', HealthPoint__c = 10, DamageMin__c = 1, DamageMax__c = 5);
-        GameFightUnit__c newWrongNameUserUnit = new GameFightUnit__c(Name = '', HealthPoint__c = 10, DamageMin__c = 0, DamageMax__c = 5);
-        GameFightUnit__c newWrongHealthUserUnit = new GameFightUnit__c(Name = 'testunit', HealthPoint__c = 0, DamageMin__c = 0, DamageMax__c = 5);
-        GameFightUnit__c newWrongDamageUserUnit = new GameFightUnit__c(Name = 'testunit', HealthPoint__c = 10, DamageMin__c = 10, DamageMax__c = 5);
+        GameFightUnit__c newRightUserUnit = new GameFightUnit__c(Name = 'testunit', HealthPoint__c = 10, Stamina__c = 100, DamageMin__c = 1, DamageMax__c = 5);
+        GameFightUnit__c newWrongNameUserUnit = new GameFightUnit__c(Name = '', HealthPoint__c = 10, Stamina__c = 100, DamageMin__c = 0, DamageMax__c = 5);
+        GameFightUnit__c newWrongHealthUserUnit = new GameFightUnit__c(Name = 'testunit', HealthPoint__c = 0, Stamina__c = 100, DamageMin__c = 0, DamageMax__c = 5);
+        GameFightUnit__c newWrongDamageUserUnit = new GameFightUnit__c(Name = 'testunit', HealthPoint__c = 10, Stamina__c = 100, DamageMin__c = 10, DamageMax__c = 5);
 
         controller.newUserUnit = newRightUserUnit;
         controller.saveNewUnit();
@@ -92,7 +92,7 @@ private class GameFightDBControllerTest {
         options = controller.getUserUnitSelectList();
         System.assertEquals(1, options.size(), 'empty list of Units creation');
         controller.activeUnits = [
-                select Id, Name, HealthPoint__c, DamageMin__c, DamageMax__c, IsActive__c, DeactivationTime__c
+                select Id, Name, HealthPoint__c, Stamina__c, DamageMin__c, DamageMax__c, IsActive__c, DeactivationTime__c
                 from GameFightUnit__c
                 where IsActive__c = true
         ];
@@ -159,7 +159,7 @@ private class GameFightDBControllerTest {
      */
     static testMethod void testChooseUnit() {
         GameFightDBController controller = new GameFightDBController();
-        GameFightUnit__c newRightUserUnit = new GameFightUnit__c(Name = 'testunit', HealthPoint__c = 10, DamageMin__c = 0, DamageMax__c = 5);
+        GameFightUnit__c newRightUserUnit = new GameFightUnit__c(Name = 'testunit', HealthPoint__c = 10, Stamina__c = 100, DamageMin__c = 0, DamageMax__c = 5);
         insert newRightUserUnit;
         controller.activeUnits = new List<GameFightUnit__c>();
         controller.activeUnits.add(newRightUserUnit);
@@ -175,7 +175,7 @@ private class GameFightDBControllerTest {
     static testMethod void testAutoFightButton() {
         GameFightDBController controller = new GameFightDBController();
         controller.initGameUnits();
-        GameFightUnit__c newRightUserUnit = new GameFightUnit__c(Name = 'testunit', HealthPoint__c = 10, DamageMin__c = 0, DamageMax__c = 5);
+        GameFightUnit__c newRightUserUnit = new GameFightUnit__c(Name = 'testunit', HealthPoint__c = 10, Stamina__c = 100, DamageMin__c = 0, DamageMax__c = 5);
         insert newRightUserUnit;
         controller.userUnit = newRightUserUnit;
         controller.autoFightButton();
@@ -203,7 +203,7 @@ private class GameFightDBControllerTest {
     static testMethod void testStepByStepButton() {
         GameFightDBController controller = new GameFightDBController();
         controller.initGameUnits();
-        GameFightUnit__c newRightUserUnit = new GameFightUnit__c(Name = 'testunit', HealthPoint__c = 100, DamageMin__c = 1, DamageMax__c = 5);
+        GameFightUnit__c newRightUserUnit = new GameFightUnit__c(Name = 'testunit', HealthPoint__c = 100, Stamina__c = 100, DamageMin__c = 1, DamageMax__c = 5);
         insert newRightUserUnit;
         controller.userUnit = newRightUserUnit;
         controller.activeUnit = newRightUserUnit;
@@ -226,8 +226,8 @@ private class GameFightDBControllerTest {
         System.assertEquals(true, rNumber < controller.roundNumber, 'roundNumber is not saved');
 
         //todo: test controller fields after Step
-        GameFightUnit__c newRightUserUnit1 = new GameFightUnit__c(Name = 'testunit', HealthPoint__c = 1, DamageMin__c = 10, DamageMax__c = 50);
-        GameFightUnit__c newRightUserUnit2 = new GameFightUnit__c(Name = 'testunit', HealthPoint__c = 1, DamageMin__c = 10, DamageMax__c = 50);
+        GameFightUnit__c newRightUserUnit1 = new GameFightUnit__c(Name = 'testunit', HealthPoint__c = 1, Stamina__c = 100, DamageMin__c = 10, DamageMax__c = 50);
+        GameFightUnit__c newRightUserUnit2 = new GameFightUnit__c(Name = 'testunit', HealthPoint__c = 1, Stamina__c = 100, DamageMin__c = 10, DamageMax__c = 50);
         insert newRightUserUnit1;
         insert newRightUserUnit2;
         controller.userUnit = newRightUserUnit1;
@@ -240,7 +240,8 @@ private class GameFightDBControllerTest {
         controller.userBlock = controller.blocks.get(1);
         controller.chooseBlock();
         //this round have to be finished
-        System.assertNotEquals(null, controller.winner, 'winner has to be chosen');
+//        System.assertNotEquals(null, controller.winner, 'winner has to be chosen');
+        System.assertEquals(true, controller.isShowResult, 'isShowResult has to be true');
         System.assertEquals(true, logSize < controller.gameLog.size(), 'log is not saved');
         System.assertEquals(true, rNumber < controller.roundNumber, 'roundNumber is not saved');
     }

@@ -80,8 +80,8 @@ public class GameFightDBController {
         hits = getHitsFromDB();
         blocks = getBlocksFromDB();
         systemUnit = getRandomActiveUnit();
-        userUnit = new GameFightUnit__c(name = '', HealthPoint__c = 0, DamageMin__c = 0, DamageMax__c = 0);
-        newUserUnit = new GameFightUnit__c(name = '', HealthPoint__c = 0, DamageMin__c = 0, DamageMax__c = 0);
+        userUnit = new GameFightUnit__c(name = '', HealthPoint__c = 0, DamageMin__c = 0, DamageMax__c = 0, Stamina__c = 100);
+        newUserUnit = new GameFightUnit__c(name = '', HealthPoint__c = 0, DamageMin__c = 0, DamageMax__c = 0, Stamina__c = 100);
         userChoice = '';
         userHitChoice = '';
         userBlockChoice = '';
@@ -122,7 +122,7 @@ public class GameFightDBController {
       */
     private List<GameFightUnit__c> getActiveUnitsFromDB() {
         return [
-                select Id, Name, HealthPoint__c, DamageMin__c, DamageMax__c, IsActive__c, DeactivationTime__c, VictoryCount__c
+                select Id, Name, HealthPoint__c, Stamina__c, DamageMin__c, DamageMax__c, IsActive__c, DeactivationTime__c, VictoryCount__c
                 from GameFightUnit__c
                 where IsActive__c = true
         ];
@@ -265,12 +265,13 @@ public class GameFightDBController {
         gameLog = game.getGameLog();
         System.debug('winner.id=' + winner.Id);
         List<GameFightUnit__c> winnersForUpdate = [
-                SELECT VictoryCount__c, Rank__c
+                SELECT VictoryCount__c, Rank__c, Stamina__c
                 FROM GameFightUnit__c
                 WHERE Id = :winner.Id
         ];
         System.debug('winners.size=' + winnersForUpdate.size());
         GameFightUnit__c winnerForUpdate = winnersForUpdate.get(0);
+        winnerForUpdate.Stamina__c = winner.Stamina__c;
         if (winnerForUpdate.VictoryCount__c == null) {
             winnerForUpdate.VictoryCount__c = 1;
         } else {
@@ -291,7 +292,7 @@ public class GameFightDBController {
             return activeUnits.get(index);
         }
         // if we don't have any let's generate some
-        GameFightUnit__c nonameUnit = new GameFightUnit__c(name = 'Noname', HealthPoint__c = 100, DamageMin__c = 10, DamageMax__c = 20);
+        GameFightUnit__c nonameUnit = new GameFightUnit__c(name = 'Noname', HealthPoint__c = 100, Stamina__c = 100, DamageMin__c = 10, DamageMax__c = 20);
 
         return nonameUnit;
     }
@@ -387,7 +388,7 @@ public class GameFightDBController {
                 isShowGameStart = true;
                 isShowUserUnit = false;
                 userUnit = newUserUnit;
-                newUserUnit = new GameFightUnit__c(name = '', HealthPoint__c = 0, DamageMin__c = 0, DamageMax__c = 0);
+                newUserUnit = new GameFightUnit__c(name = '', HealthPoint__c = 0, DamageMin__c = 0, DamageMax__c = 0, Stamina__c = 100);
             } else {
                 // return to choose process without changes
                 errorMessage = 'Please fill the all user properties.';
@@ -447,7 +448,8 @@ public class GameFightDBController {
 
         // Generate the Select Options based on the final sorted list
         for (GameFightUnit__c unit : userUnits) {
-            String unitString = unit.Name + ':   HealthPoints = ' + unit.HealthPoint__c + ', DamageMin = ' + unit.DamageMin__c + ', DamageMax = ' + unit.DamageMax__c ;
+            String unitString = unit.Name + ':   HealthPoints = ' + unit.HealthPoint__c + ', DamageMin = ' +
+                    unit.DamageMin__c + ', DamageMax = ' + unit.DamageMax__c  + ', Stamina = ' + unit.Stamina__c;
             options.add(new SelectOption(unit.Id, unitString));
         }
 
@@ -508,7 +510,7 @@ public class GameFightDBController {
             isShowGameStart = true;
             isShowUserUnit = false;
         } else {
-            userUnit = new GameFightUnit__c(name = '', HealthPoint__c = 0, DamageMin__c = 0, DamageMax__c = 0);
+            userUnit = new GameFightUnit__c(name = '', HealthPoint__c = 0, DamageMin__c = 0, DamageMax__c = 0, Stamina__c = 100);
             isShowUserChosenUnit = false;
             errorMessage = 'Please select or input user unit.';
             isShowMessage = true;

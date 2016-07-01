@@ -23,9 +23,9 @@ private class GameFightDBTest {
         insert blocks;
         insert hits;
 
-        GameFightUnit__c gameUnit1 = new GameFightUnit__c(name='TestUnit1', HealthPoint__c = 100,
+        GameFightUnit__c gameUnit1 = new GameFightUnit__c(name='TestUnit1', HealthPoint__c = 100, Stamina__c = 100,
                 DamageMin__c = 1, DamageMax__c = 2);
-        GameFightUnit__c gameUnit2 = new GameFightUnit__c(name='TestUnit2', HealthPoint__c = 100,
+        GameFightUnit__c gameUnit2 = new GameFightUnit__c(name='TestUnit2', HealthPoint__c = 100, Stamina__c = 100,
                 DamageMin__c = 1, DamageMax__c = 2);
 
         GameFightDB game = new GameFightDB();
@@ -52,9 +52,9 @@ private class GameFightDBTest {
     }
 
     static testMethod void testAutoFightExceptions() {
-        GameFightUnit__c gameUnit1 = new GameFightUnit__c(name='TestUnit1', HealthPoint__c = 100,
+        GameFightUnit__c gameUnit1 = new GameFightUnit__c(name='TestUnit1', HealthPoint__c = 100, Stamina__c = 100,
                 DamageMin__c = 1, DamageMax__c = 2);
-        GameFightUnit__c gameUnit2 = new GameFightUnit__c(name='TestUnit2', HealthPoint__c = 100,
+        GameFightUnit__c gameUnit2 = new GameFightUnit__c(name='TestUnit2', HealthPoint__c = 100, Stamina__c = 100,
                 DamageMin__c = 1, DamageMax__c = 2);
         List<Block__c> blocks = new List<Block__c>();
         List<Hit__c> hits = new List<Hit__c>();

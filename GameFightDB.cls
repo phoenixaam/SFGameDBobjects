@@ -78,9 +78,15 @@ public with sharing class GameFightDB {
             damage = randomKick(unit1);
             gameLog.add(unit1.Name + ' kicks with ' + damage + ' damages.');
         }
-        Decimal leftHp = unit2.HealthPoint__c - damage;
+        Decimal leftHp = unit2.HealthPoint__c;
+        if (damage > 0) {
+            leftHp = leftHp - damage;
+            if (unit2.Stamina__c > 0) {
+                unit2.Stamina__c = unit2.Stamina__c - 1;
+            }
+        }
         if (leftHp > 0) {
-            gameLog.add(unit2.Name + ' left ' + leftHp + ' health points.');
+            gameLog.add(unit2.Name + ' left ' + leftHp + ' health points, stamina left ' + unit2.Stamina__c + '%.');
             unit2.HealthPoint__c = leftHp;
         } else {
             gameLog.add(unit2.Name + ' is dead.');
@@ -96,7 +102,8 @@ public with sharing class GameFightDB {
      * @return: damage
      */
     private Integer randomKick(GameFightUnit__c unit) {
-        Double damageDouble = (Math.floor(Math.random() * (unit.DamageMax__c - unit.DamageMin__c + 1) + unit.DamageMin__c));
+        Double damageDouble = (Math.floor((Math.random() * (unit.DamageMax__c - unit.DamageMin__c + 1) +
+                unit.DamageMin__c) * unit.Stamina__c / 100));
         Integer damage = damageDouble.intValue();
         return damage;
     }

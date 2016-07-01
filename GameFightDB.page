@@ -19,20 +19,21 @@
     </apex:form>
 
     <apex:outputPanel id="SystemUnit">
-        <apex:form>
+        <apex:form >
             <apex:pageBlock title="System unit" id="system_units" rendered="{!isShowSystemUnit}">
-                <apex:pageBlockSection columns="4" title="You will fight with system unit:">
+                <apex:pageBlockSection columns="5" title="You will fight with system unit:">
                     <apex:outputField value="{!systemUnit.Name}" label="Name:"/>
                     <apex:outputField value="{!systemUnit.HealthPoint__c}" label="Health Points:"/>
                     <apex:outputField value="{!systemUnit.DamageMin__c}" label="DamageMin:"/>
                     <apex:outputField value="{!systemUnit.DamageMax__c}" label="DamageMax:"/>
+                    <apex:outputField value="{!systemUnit.Stamina__c}" label="Stamina:"/>
                 </apex:pageBlockSection>
             </apex:pageBlock>
         </apex:form>
     </apex:outputPanel>
 
     <apex:outputPanel id="UserUnit">
-        <apex:form>
+        <apex:form >
             <apex:actionFunction name="selectUserUnitFromList" action="{!chooseUnit}"
                                  rerender="ChosenUnit, UserUnit, ErrorPanel, GameStart"/>
             <apex:actionFunction name="saveNewUserUnit" action="{!saveNewUnit}"
@@ -62,7 +63,7 @@
     </apex:outputPanel>
 
     <apex:outputPanel id="ErrorPanel">
-        <apex:form>
+        <apex:form >
             <apex:pageBlock title="Error!" id="error" rendered="{!isShowMessage}">
                 <apex:outputText value="{!errorMessage}"/>
             </apex:pageBlock>
@@ -70,42 +71,43 @@
     </apex:outputPanel>
 
     <apex:outputPanel id="ChosenUnit">
-        <apex:form>
+        <apex:form >
             <apex:pageBlock title="User's chosen unit" id="chosen_unit" rendered="{!isShowUserChosenUnit}">
-                <apex:pageBlockSection columns="4" title="Your chosen unit is:">
+                <apex:pageBlockSection columns="5" title="Your chosen unit is:">
                     <apex:outputField value="{!userUnit.Name}" label="Name:"/>
                     <apex:outputField value="{!userUnit.HealthPoint__c}" label="Health Points:"/>
                     <apex:outputField value="{!userUnit.DamageMin__c}" label="DamageMin:"/>
                     <apex:outputField value="{!userUnit.DamageMax__c}" label="DamageMax:"/>
+                    <apex:outputField value="{!userUnit.Stamina__c}" label="Stamina:"/>
                 </apex:pageBlockSection>
             </apex:pageBlock>
 
             <apex:pageBlock title="Game start" id="GameStart" rendered="{!isShowGameStart}">
                 <apex:commandButton action="{!autoFightButton}" value="Auto Fight"
-                                    rerender="UserUnit, Results, ChosenUnit"/>
+                                    rerender="SystemUnit, UserUnit, Results, ChosenUnit"/>
                 <apex:commandButton action="{!stepByStepFightButton}" value="Step by step Fight"
-                                    rerender="UserUnit, Results, ChosenUnit, StepByStep"/>
+                                    rerender="SystemUnit, UserUnit, Results, ChosenUnit, StepByStep"/>
             </apex:pageBlock>
         </apex:form>
     </apex:outputPanel>
 
     <apex:outputPanel id="StepByStep">
-        <apex:form>
+        <apex:form >
             <apex:actionFunction name="selectUserHitFromList" action="{!chooseHit}"
-                                 reRender="ErrorPanel, StepByStep, Results"/>
+                                 reRender="SystemUnit, UserUnit, ErrorPanel, StepByStep, Results"/>
             <apex:actionFunction name="selectUserBlockFromList" action="{!chooseBlock}"
-                                 reRender="ErrorPanel, StepByStep, Results"/>
+                                 reRender="SystemUnit, UserUnit, ErrorPanel, StepByStep, Results"/>
 
             <apex:pageBlock title="Round:{!roundNumber}. User's turn.  Hit of {!userUnit.Name}" id="user_turn" rendered="{!isShowChooseHitPanel}">
                 <apex:pageBlockSection columns="2">
-                    <apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem >
                         Please choose Hit for your unit:
                         <apex:selectList value="{!userHitChoice}" id="userHitSelectList" styleclass="std" size="1"
                                          onChange="selectUserHitFromList()" onSelect="selectUserHitFromList()">
                             <apex:selectOptions value="{!userHitSelectList}"/>
                         </apex:selectList>
                     </apex:pageBlockSectionItem>
-                    <apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem >
                         Game log:
                         <apex:dataList value="{!gameLog}" var="glog" title="Game log">
                             <apex:outputText value="{!glog}"/>
@@ -115,14 +117,14 @@
             </apex:pageBlock>
             <apex:pageBlock title="Round:{!roundNumber}. Computer's turn. Hit of {!systemUnit.Name}" id="computer_turn" rendered="{!isShowChooseBlockPanel}">
                 <apex:pageBlockSection columns="2">
-                    <apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem >
                         Please choose Block for your unit:
                         <apex:selectList value="{!userBlockChoice}" id="userBlockSelectList" styleclass="std" size="1"
                                          onChange="selectUserBlockFromList()" onSelect="selectUserBlockFromList()">
                             <apex:selectOptions value="{!userBlockSelectList}"/>
                         </apex:selectList>
                     </apex:pageBlockSectionItem>
-                    <apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem >
                         Game log:
                         <apex:dataList value="{!gameLog}" var="glog" title="Game log">
                             <apex:outputText value="{!glog}"/>
@@ -134,7 +136,7 @@
     </apex:outputPanel>
 
     <apex:outputPanel id="Results">
-        <apex:form>
+        <apex:form >
             <apex:pageBlock title="Game result" id="game_results" rendered="{!isShowResult}">
                 <apex:dataList value="{!gamelog}" var="gamelog">
                     <apex:outputText value="{!gamelog}"/>
