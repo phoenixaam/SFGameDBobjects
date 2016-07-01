@@ -37,3 +37,7 @@ If the user's kick matches with opponent's block - damage will not be applied an
 <p> Added Tests for all classes</p>
 <p> Added trigger for updating Unit's fields Rank__c and Percent_of_success__c depend on VictoryCount__c and the total number of fights by Unit</p>
 <p> Added Batch for update fiels IsActive every 12 hours</p>
+<p> Added new property to GameUnit - "Stamina" </p>
+<p> It equals 100% from start and it decreases on 1% with every kick received by unit.</p>
+<p> As less the stamina becomes , as less damage caused by unit.</p>
+<p> The Stamina renewes every 12 hours (by batch and scheduler).</p>
