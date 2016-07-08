@@ -225,7 +225,7 @@ private class GameFightDBControllerTest {
         System.assertEquals(true, logSize < controller.gameLog.size(), 'log is not saved');
         System.assertEquals(true, rNumber < controller.roundNumber, 'roundNumber is not saved');
 
-        //todo: test controller fields after Step
+        //test controller fields after Step
         GameFightUnit__c newRightUserUnit1 = new GameFightUnit__c(Name = 'testunit', HealthPoint__c = 1, Stamina__c = 100, DamageMin__c = 10, DamageMax__c = 50);
         GameFightUnit__c newRightUserUnit2 = new GameFightUnit__c(Name = 'testunit', HealthPoint__c = 1, Stamina__c = 100, DamageMin__c = 10, DamageMax__c = 50);
         insert newRightUserUnit1;
@@ -235,9 +235,19 @@ private class GameFightDBControllerTest {
         controller.activeUnit = newRightUserUnit1;
         controller.activeUnits.add(newRightUserUnit1);
         controller.activeUnits.add(newRightUserUnit2);
-        // assign different parts to hit and block
-        controller.userHit = controller.hits.get(0);
-        controller.userBlock = controller.blocks.get(1);
+        // assign different body parts to hit and block
+        controller.userHit = [
+                SELECT Id, Body_part__r.Id, Body_part__r.Name
+                FROM Hit__c
+                WHERE Body_part__r.Name = 'bp1'
+                LIMIT 1
+        ];
+        controller.userBlock = [
+                SELECT Id, Body_part__r.Id, Body_part__r.Name
+                FROM Block__c
+                WHERE Body_part__r.Name = 'bp2'
+                LIMIT 1
+        ];
         controller.chooseBlock();
         //this round have to be finished
 //        System.assertNotEquals(null, controller.winner, 'winner has to be chosen');
@@ -245,6 +255,4 @@ private class GameFightDBControllerTest {
         System.assertEquals(true, logSize < controller.gameLog.size(), 'log is not saved');
         System.assertEquals(true, rNumber < controller.roundNumber, 'roundNumber is not saved');
     }
-
-    //todo: test controller fields after battle
 }
